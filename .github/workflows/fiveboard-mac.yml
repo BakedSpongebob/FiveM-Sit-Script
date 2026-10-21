@@ -1,0 +1,44 @@
+name: Build FiveBoard (macOS)
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'fiveboard/**'
+      - '.github/workflows/fiveboard-mac.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-14
+    defaults:
+      run:
+        working-directory: fiveboard
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: fiveboard/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test
+        run: npm test
+
+      - name: Build .dmg (Apple Silicon + Intel)
+        run: npm run dist
+
+      - name: Upload app
+        uses: actions/upload-artifact@v4
+        with:
+          name: FiveBoard-macOS
+          path: |
+            fiveboard/dist/*.dmg
+            fiveboard/dist/*.zip
+          if-no-files-found: error

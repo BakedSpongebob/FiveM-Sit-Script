@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>FiveBoard</title>
+  <link rel="stylesheet" href="vendor/codemirror/lib/codemirror.css">
+  <link rel="stylesheet" href="vendor/codemirror/addon/dialog/dialog.css">
+  <link rel="stylesheet" href="vendor/codemirror/addon/hint/show-hint.css">
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/board.css">
+  <link rel="stylesheet" href="css/editor.css">
+</head>
+<body data-theme="dark">
+  <div id="app">
+    <header id="titlebar">
+      <div class="tb-left">
+        <div class="traffic-space"></div>
+        <button class="btn-icon" id="btn-sidebar" title="Toggle sidebar (⌘\)"></button>
+        <button class="board-name" id="board-name" title="Rename board"></button>
+        <span class="save-status" id="save-status"></span>
+      </div>
+      <div class="tb-center" id="toolbar"></div>
+      <div class="tb-right">
+        <button class="btn-icon" id="btn-search" title="Search board (⌘K)"></button>
+        <button class="btn-icon" id="btn-editor" title="Code editor (⌘E)"></button>
+        <button class="btn-icon" id="btn-inspector" title="Inspector (⌘I)"></button>
+      </div>
+    </header>
+    <div id="main">
+      <aside id="sidebar"></aside>
+      <div id="stage">
+        <div id="viewport">
+          <div id="world">
+            <div id="layer-frames"></div>
+            <svg id="layer-yarn-auto" xmlns="http://www.w3.org/2000/svg"></svg>
+            <div id="layer-items"></div>
+            <svg id="layer-yarn" xmlns="http://www.w3.org/2000/svg"></svg>
+            <svg id="layer-yarn-focus" xmlns="http://www.w3.org/2000/svg"></svg>
+          </div>
+          <div id="marquee"></div>
+          <div id="drop-overlay"><div>Drop files, images or a resource folder</div></div>
+        </div>
+        <aside id="inspector"></aside>
+        <div id="zoom-controls"></div>
+        <canvas id="minimap" title="Minimap — click to jump"></canvas>
+      </div>
+      <aside id="editor"></aside>
+    </div>
+    <footer id="statusbar">
+      <span id="status-left"></span>
+      <span id="status-center"></span>
+      <span id="status-right"></span>
+    </footer>
+  </div>
+  <div id="menus"></div>
+  <div id="palette-root"></div>
+  <div id="modal-root"></div>
+  <div id="toasts"></div>
+
+  <script src="vendor/codemirror/lib/codemirror.js"></script>
+  <script src="vendor/codemirror/addon/mode/overlay.js"></script>
+  <script src="vendor/codemirror/addon/runmode/runmode.js"></script>
+  <script src="vendor/codemirror/mode/lua/lua.js"></script>
+  <script src="vendor/codemirror/mode/javascript/javascript.js"></script>
+  <script src="vendor/codemirror/mode/xml/xml.js"></script>
+  <script src="vendor/codemirror/mode/css/css.js"></script>
+  <script src="vendor/codemirror/mode/htmlmixed/htmlmixed.js"></script>
+  <script src="vendor/codemirror/mode/jsx/jsx.js"></script>
+  <script src="vendor/codemirror/mode/markdown/markdown.js"></script>
+  <script src="vendor/codemirror/mode/sql/sql.js"></script>
+  <script src="vendor/codemirror/mode/yaml/yaml.js"></script>
+  <script src="vendor/codemirror/mode/toml/toml.js"></script>
+  <script src="vendor/codemirror/mode/shell/shell.js"></script>
+  <script src="vendor/codemirror/mode/properties/properties.js"></script>
+  <script src="vendor/codemirror/mode/clike/clike.js"></script>
+  <script src="vendor/codemirror/mode/python/python.js"></script>
+  <script src="vendor/codemirror/addon/edit/matchbrackets.js"></script>
+  <script src="vendor/codemirror/addon/edit/closebrackets.js"></script>
+  <script src="vendor/codemirror/addon/comment/comment.js"></script>
+  <script src="vendor/codemirror/addon/selection/active-line.js"></script>
+  <script src="vendor/codemirror/addon/dialog/dialog.js"></script>
+  <script src="vendor/codemirror/addon/search/searchcursor.js"></script>
+  <script src="vendor/codemirror/addon/search/search.js"></script>
+  <script src="vendor/codemirror/addon/search/jump-to-line.js"></script>
+  <script src="vendor/codemirror/addon/search/match-highlighter.js"></script>
+  <script src="vendor/codemirror/addon/hint/show-hint.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

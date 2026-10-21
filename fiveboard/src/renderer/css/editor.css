@@ -1,0 +1,442 @@
+/* FiveBoard — code editor drawer and syntax theme (shared by the editor and card previews). */
+
+#editor {
+  display: none;
+  position: relative;
+  flex-direction: column;
+  width: 640px;
+  flex: none;
+  min-width: 0;
+  background: var(--code-bg);
+  border-left: 1px solid var(--border);
+}
+
+#editor.open {
+  display: flex;
+}
+
+.editor-resize {
+  position: absolute;
+  left: -4px;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  cursor: ew-resize;
+  z-index: 5;
+}
+
+.editor-resize:hover {
+  background: color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.editor-tabbar {
+  display: flex;
+  align-items: stretch;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  min-height: 36px;
+}
+
+.editor-tabs {
+  flex: 1;
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.editor-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.editor-hide {
+  align-self: center;
+  margin: 0 4px;
+}
+
+.editor-tab {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 6px 0 12px;
+  border-right: 1px solid var(--border);
+  color: var(--text-2);
+  white-space: nowrap;
+  font-size: 12px;
+  max-width: 220px;
+}
+
+.editor-tab:hover {
+  background: var(--hover);
+}
+
+.editor-tab.active {
+  background: var(--code-bg);
+  color: var(--text);
+  box-shadow: inset 0 2px 0 var(--accent);
+}
+
+.tab-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--role-other);
+  flex: none;
+}
+
+.tab-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tab-close {
+  border: 0;
+  background: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  display: grid;
+  place-items: center;
+  color: var(--text-3);
+  position: relative;
+}
+
+.tab-close:hover {
+  background: var(--press);
+  color: var(--text);
+}
+
+.tab-close.dirty .icon {
+  visibility: hidden;
+}
+
+.tab-close.dirty::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--warn);
+}
+
+.tab-close.dirty:hover .icon {
+  visibility: visible;
+}
+
+.tab-close.dirty:hover::after {
+  display: none;
+}
+
+.editor-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px 8px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--code-bg);
+}
+
+.editor-file {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.editor-titles {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.editor-name {
+  font-weight: 650;
+}
+
+.editor-path {
+  font-size: 10.5px;
+  color: var(--text-3);
+  font-family: var(--mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  direction: rtl;
+  text-align: left;
+}
+
+.editor-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.editor-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  background: rgba(245, 184, 74, 0.12);
+  color: var(--warn);
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+
+.editor-banner[hidden] {
+  display: none;
+}
+
+.editor-banner span {
+  flex: 1;
+}
+
+.editor-host {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+.editor-host .CodeMirror {
+  position: absolute;
+  inset: 0;
+  height: auto;
+}
+
+.editor-status {
+  padding: 4px 14px;
+  font-size: 11px;
+  color: var(--text-3);
+  border-top: 1px solid var(--border);
+  background: var(--panel);
+  white-space: nowrap;
+  overflow: hidden;
+  font-variant-numeric: tabular-nums;
+}
+
+.editor-empty {
+  position: absolute;
+  inset: 120px 20px auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-2);
+  text-align: center;
+  pointer-events: none;
+}
+
+.editor-empty[hidden] {
+  display: none;
+}
+
+.editor-empty .icon {
+  color: var(--text-3);
+  margin-bottom: 6px;
+}
+
+.editor-empty p {
+  margin: 2px 0;
+}
+
+.gutter-hint {
+  display: inline-grid;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  margin-left: 3px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 800;
+  font-family: var(--font);
+  cursor: help;
+}
+
+.gutter-hint.warn {
+  background: var(--warn);
+  color: #1b1c1f;
+}
+
+.gutter-hint.info {
+  background: var(--panel-2);
+  color: var(--text-2);
+}
+
+.fb-hints {
+  width: 20px;
+}
+
+.flash-line {
+  animation: flash 1.4s ease-out;
+}
+
+@keyframes flash {
+  0% {
+    background: rgba(245, 184, 74, 0.35);
+  }
+  100% {
+    background: transparent;
+  }
+}
+
+/* ---- CodeMirror theme "fiveboard" ------------------------------------------------------- */
+
+.cm-s-fiveboard.CodeMirror {
+  background: var(--code-bg);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.cm-s-fiveboard .CodeMirror-gutters {
+  background: var(--code-bg);
+  border-right: 1px solid var(--border);
+}
+
+.cm-s-fiveboard .CodeMirror-linenumber {
+  color: var(--text-3);
+  padding: 0 10px 0 6px;
+}
+
+.cm-s-fiveboard .CodeMirror-cursor {
+  border-left: 2px solid var(--accent);
+}
+
+.cm-s-fiveboard div.CodeMirror-selected,
+.cm-s-fiveboard.CodeMirror-focused div.CodeMirror-selected {
+  background: rgba(124, 140, 255, 0.26);
+}
+
+.cm-s-fiveboard .CodeMirror-activeline-background {
+  background: rgba(255, 255, 255, 0.035);
+}
+
+body[data-theme='light'] .cm-s-fiveboard .CodeMirror-activeline-background {
+  background: rgba(0, 0, 0, 0.035);
+}
+
+.cm-s-fiveboard .CodeMirror-matchingbracket {
+  color: var(--text) !important;
+  background: rgba(124, 140, 255, 0.28);
+  text-decoration: none;
+}
+
+.cm-s-fiveboard .cm-matchhighlight {
+  background: rgba(245, 184, 74, 0.16);
+}
+
+.CodeMirror-dialog {
+  background: var(--panel);
+  color: var(--text);
+  border-bottom: 1px solid var(--border) !important;
+  font-family: var(--font);
+  padding: 6px 10px !important;
+}
+
+.CodeMirror-dialog input {
+  font-family: var(--mono);
+  color: var(--text);
+}
+
+.cm-searching {
+  background: rgba(245, 184, 74, 0.3);
+}
+
+/* Token colors — used by the editor and the static previews on cards. */
+.cm-s-fiveboard .cm-keyword { color: #c792ea; }
+.cm-s-fiveboard .cm-atom { color: #f78c6c; }
+.cm-s-fiveboard .cm-number { color: #f78c6c; }
+.cm-s-fiveboard .cm-def { color: #82aaff; }
+.cm-s-fiveboard .cm-variable { color: var(--text); }
+.cm-s-fiveboard .cm-variable-2 { color: #89ddff; }
+.cm-s-fiveboard .cm-variable-3,
+.cm-s-fiveboard .cm-type { color: #ffcb6b; }
+.cm-s-fiveboard .cm-property { color: #b2ccd6; }
+.cm-s-fiveboard .cm-operator { color: #89ddff; }
+.cm-s-fiveboard .cm-comment { color: #6f7682; font-style: italic; }
+.cm-s-fiveboard .cm-string { color: #c3e88d; }
+.cm-s-fiveboard .cm-string-2 { color: #f07178; }
+.cm-s-fiveboard .cm-meta { color: #ffcb6b; }
+.cm-s-fiveboard .cm-qualifier { color: #c792ea; }
+.cm-s-fiveboard .cm-builtin { color: #ffcb6b; }
+.cm-s-fiveboard .cm-bracket { color: var(--text-2); }
+.cm-s-fiveboard .cm-tag { color: #f07178; }
+.cm-s-fiveboard .cm-attribute { color: #c792ea; }
+.cm-s-fiveboard .cm-header { color: #82aaff; font-weight: 700; }
+.cm-s-fiveboard .cm-quote { color: #6f7682; }
+.cm-s-fiveboard .cm-link { color: #82aaff; text-decoration: underline; }
+.cm-s-fiveboard .cm-error { color: #ff5370; }
+.cm-s-fiveboard .cm-strong { font-weight: 700; }
+.cm-s-fiveboard .cm-em { font-style: italic; }
+
+body[data-theme='light'] .cm-s-fiveboard .cm-keyword { color: #8839c4; }
+body[data-theme='light'] .cm-s-fiveboard .cm-atom,
+body[data-theme='light'] .cm-s-fiveboard .cm-number { color: #c2410c; }
+body[data-theme='light'] .cm-s-fiveboard .cm-def { color: #2459d6; }
+body[data-theme='light'] .cm-s-fiveboard .cm-variable-2 { color: #0a7ea4; }
+body[data-theme='light'] .cm-s-fiveboard .cm-variable-3,
+body[data-theme='light'] .cm-s-fiveboard .cm-type,
+body[data-theme='light'] .cm-s-fiveboard .cm-builtin,
+body[data-theme='light'] .cm-s-fiveboard .cm-meta { color: #a16207; }
+body[data-theme='light'] .cm-s-fiveboard .cm-property { color: #3d5a6c; }
+body[data-theme='light'] .cm-s-fiveboard .cm-operator { color: #0a7ea4; }
+body[data-theme='light'] .cm-s-fiveboard .cm-comment { color: #8a8e96; }
+body[data-theme='light'] .cm-s-fiveboard .cm-string { color: #2f7d32; }
+body[data-theme='light'] .cm-s-fiveboard .cm-tag { color: #c0392b; }
+body[data-theme='light'] .cm-s-fiveboard .cm-attribute { color: #8839c4; }
+
+/* Autocomplete popup */
+.CodeMirror-hints {
+  background: var(--panel);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 4px;
+  max-height: 260px;
+  z-index: 2000;
+}
+
+.CodeMirror-hint {
+  color: var(--text);
+  border-radius: 5px;
+  padding: 3px 8px;
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+
+li.CodeMirror-hint-active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.hint-name {
+  font-weight: 600;
+}
+
+.hint-params {
+  color: var(--text-3);
+  max-width: 340px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hint-side {
+  margin-left: auto;
+  font-size: 10px;
+  font-family: var(--font);
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+li.CodeMirror-hint-active .hint-params,
+li.CodeMirror-hint-active .hint-side {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.hint-c .hint-side { color: var(--role-client); }
+.hint-s .hint-side { color: var(--role-server); }
+.hint-b .hint-side { color: var(--role-shared); }
