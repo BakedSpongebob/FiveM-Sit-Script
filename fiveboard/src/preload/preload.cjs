@@ -14,6 +14,8 @@ contextBridge.exposeInMainWorld('api', {
   ready: () => invoke('app:ready'),
   flushed: () => invoke('app:flushed'),
   closeWindow: () => invoke('window:close'),
+  showAppMenu: (x, y) => invoke('window:menu', x, y),
+  setTheme: (theme) => invoke('window:theme', theme),
   onFlush: (cb) => subscribe('app:flush', cb),
   onOpenFile: (cb) => subscribe('app:open-file', cb),
   onMenu: (cb) => subscribe('menu:command', cb),

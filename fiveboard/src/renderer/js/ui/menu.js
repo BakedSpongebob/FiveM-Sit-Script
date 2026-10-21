@@ -1,5 +1,5 @@
 // Floating context menus with keyboard navigation and nested submenus.
-import { h, icon } from '../util.js';
+import { h, icon, keys } from '../util.js';
 
 let host = null;
 let open = [];
@@ -72,7 +72,7 @@ export function showMenu(x, y, items, { level = 0, anchor = null } = {}) {
     const btn = h('button.ctx-item', { role: 'menuitem', disabled: item.disabled || null, class: item.danger ? 'danger' : '' },
       h('span.ctx-icon', null, item.icon ? icon(item.icon, 14) : item.checked ? '✓' : ''),
       h('span.ctx-label', null, item.label),
-      item.shortcut ? h('span.ctx-shortcut', null, item.shortcut) : null,
+      item.shortcut ? h('span.ctx-shortcut', null, keys(item.shortcut)) : null,
       item.submenu ? h('span.ctx-arrow', null, icon('chevron', 12)) : null,
     );
     if (item.submenu) {

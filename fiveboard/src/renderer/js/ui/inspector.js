@@ -1,7 +1,7 @@
 // Floating inspector: details and actions for the current selection, FiveM insights for files
 // and resources, and a problems list for the whole board when nothing is selected.
 import { store, subscribe, getItem, getLink, checkpoint, updateItem, updateItems, updateLink, removeLinks, setSelection } from '../store.js';
-import { h, icon, formatBytes, rectContains, boundsOf } from '../util.js';
+import { h, icon, formatBytes, rectContains, boundsOf, keys, fileManager, vscodeUrl } from '../util.js';
 import { ROLE_LABEL } from '../items.js';
 import { LINK_KINDS, KIND_TITLES, YARN_COLORS, linkColor, kindGroup } from '../yarn.js';
 import { classifyEvent } from '../fivem/analyzer.js';
@@ -134,8 +134,8 @@ function renderMulti(sel) {
   const nonFrames = sel.filter((i) => i.type !== 'frame');
   return [
     h('div.insp-actions.vertical', null,
-      h('button.btn', { onclick: () => hooks.command('items:group') }, icon('frame', 13), 'Group in frame  ⌘G'),
-      h('button.btn', { onclick: () => hooks.command('items:connect') }, icon('yarn', 13), 'Connect in order  ⌘L'),
+      h('button.btn', { onclick: () => hooks.command('items:group') }, icon('frame', 13), keys('Group in frame  ⌘G')),
+      h('button.btn', { onclick: () => hooks.command('items:connect') }, icon('yarn', 13), keys('Connect in order  ⌘L')),
       h('button.btn', { onclick: () => hooks.command('items:arrange') }, icon('fit', 13), 'Arrange in a grid'),
       h('button.btn', { onclick: () => align(nonFrames, 'left') }, 'Align left'),
       h('button.btn', { onclick: () => align(nonFrames, 'top') }, 'Align top'),
@@ -225,7 +225,7 @@ function renderItem(item) {
         item.name ? row('Name', item.name) : null,
         item.path ? row('Path', item.path) : null,
         h('div.insp-actions', null,
-          item.path ? h('button.btn', { onclick: () => window.api.shell.reveal(item.path) }, icon('reveal', 13), 'Show in Finder') : null,
+          item.path ? h('button.btn', { onclick: () => window.api.shell.reveal(item.path) }, icon('reveal', 13), `Show in ${fileManager()}`) : null,
           h('button.btn', { onclick: () => hooks.resetImage(item.id) }, 'Original ratio'),
         ),
       ];
@@ -241,7 +241,7 @@ function renderItem(item) {
     case 'frame':
       return renderFrame(item);
     case 'filelist':
-      return [row('Folder', item.relPath || item.title), row('Files', String(item.entries?.length || 0)), h('p.muted', null, 'Binary assets (streamed models, textures, audio…) are listed here instead of getting their own cards. Click one to show it in Finder.')];
+      return [row('Folder', item.relPath || item.title), row('Files', String(item.entries?.length || 0)), h('p.muted', null, `Binary assets (streamed models, textures, audio…) are listed here instead of getting their own cards. Click one to show it in ${fileManager()}.`)];
     case 'resource':
       return renderResource(item);
     case 'file':
@@ -328,8 +328,8 @@ function renderFile(item) {
   ));
   out.push(h('div.insp-actions', null,
     item.kind !== 'binary' ? h('button.btn.btn-primary', { onclick: () => hooks.openEditor(item.id) }, icon('code', 13), 'Edit') : null,
-    item.path ? h('button.btn', { onclick: () => window.api.shell.reveal(item.path) }, icon('reveal', 13), 'Finder') : null,
-    item.path ? h('button.btn', { onclick: () => window.api.shell.openExternal(`vscode://file${encodeURI(item.path)}`) }, 'VS Code') : null,
+    item.path ? h('button.btn', { onclick: () => window.api.shell.reveal(item.path) }, icon('reveal', 13), fileManager()) : null,
+    item.path ? h('button.btn', { onclick: () => window.api.shell.openExternal(vscodeUrl(item.path)) }, 'VS Code') : null,
     item.path ? h('button.btn', { onclick: () => hooks.reloadFile(item.id) }, icon('refresh', 13), 'Reload') : null,
   ));
   if (!a) return out;

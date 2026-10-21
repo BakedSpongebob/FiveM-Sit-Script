@@ -488,7 +488,14 @@ function onWheel(e) {
   }
   e.preventDefault();
   const mul = e.deltaMode === 1 ? 16 : 1;
-  panBy(-e.deltaX * mul, -e.deltaY * mul);
+  let dx = e.deltaX;
+  let dy = e.deltaY;
+  // Shift + mouse wheel scrolls sideways (Windows mice only report deltaY).
+  if (e.shiftKey && !dx) {
+    dx = dy;
+    dy = 0;
+  }
+  panBy(-dx * mul, -dy * mul);
 }
 
 function canScroll(el, dx, dy) {

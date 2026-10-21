@@ -1,6 +1,6 @@
 // Renderers for every board item type. Each renderer builds the inner DOM once (create) and
 // patches it when the item changes (update). User content is only ever set as text.
-import { h, icon, formatBytes, uid } from './util.js';
+import { h, icon, formatBytes, uid, fileManager } from './util.js';
 import { renderPreview, LANG_LABEL } from './codeview.js';
 
 export const ROLE_LABEL = {
@@ -275,7 +275,7 @@ const file = {
         item.path
           ? h('div.binary-actions', null,
               h('button.btn', { 'data-action': 'open', onclick: (e) => { e.stopPropagation(); ctx.actions.openPath(item.path); } }, 'Open'),
-              h('button.btn', { 'data-action': 'reveal', onclick: (e) => { e.stopPropagation(); ctx.actions.reveal(item.path); } }, 'Show in Finder'))
+              h('button.btn', { 'data-action': 'reveal', onclick: (e) => { e.stopPropagation(); ctx.actions.reveal(item.path); } }, `Show in ${fileManager()}`))
           : null,
       ].filter(Boolean));
     } else if (v.renderedContent !== item.content || v.renderedLang !== item.lang) {
@@ -330,7 +330,7 @@ const filelist = {
     v.list.replaceChildren(
       ...entries.slice(0, 400).map((e) =>
         h('div.filelist-row', {
-          title: e.path ? 'Click to show in Finder' : '',
+          title: e.path ? `Click to show in ${fileManager()}` : '',
           onclick: (ev) => {
             if (e.path && !ev.shiftKey && !ev.metaKey) ctx.actions.reveal(e.path);
           },

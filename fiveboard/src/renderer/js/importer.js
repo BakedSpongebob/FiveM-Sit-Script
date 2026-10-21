@@ -2,7 +2,7 @@
 // card, binary assets are grouped into lists, and each resource gets a summary card.
 import { store, checkpoint, addItems, updateItems, setWorkspaces, getItem, notify } from './store.js';
 import { makeFile, makeImage, FILE_W, FILE_H } from './factory.js';
-import { boundsOf, uid, basename, joinPath } from './util.js';
+import { boundsOf, uid, basename, joinPath, fileManager } from './util.js';
 import { isManifestName } from './fivem/analyzer.js';
 import { fitRect } from './viewport.js';
 import { toast } from './ui/toast.js';
@@ -382,5 +382,5 @@ export async function exportFrameToFolder(frameId) {
   setWorkspaces([...store.board.workspaces, { id: wsId, root: target, name, importedAt: Date.now() }]);
   window.api.fs.watch(target);
   notify('content');
-  toast(`Exported ${inside.length} files to ${target}`, { action: { label: 'Show in Finder', fn: () => window.api.shell.reveal(joinPath(target, 'fxmanifest.lua')) }, timeout: 7000 });
+  toast(`Exported ${inside.length} files to ${target}`, { action: { label: `Show in ${fileManager()}`, fn: () => window.api.shell.reveal(joinPath(target, 'fxmanifest.lua')) }, timeout: 7000 });
 }
