@@ -5,7 +5,7 @@ import { modeFor, LANG_LABEL } from './codeview.js';
 import { ROLE_LABEL } from './items.js';
 import { NATIVES, LUA_WORDS } from './fivem/natives.js';
 import { detectLanguage } from './fivem/analyzer.js';
-import { h, icon, basename, debounce } from './util.js';
+import { h, icon, basename, debounce, keys, fileManager, vscodeUrl } from './util.js';
 import { toast } from './ui/toast.js';
 
 const CM = window.CodeMirror;
@@ -30,14 +30,14 @@ export function initEditor(root, appHooks) {
   const path = h('span.editor-path');
   const role = h('span.role-badge');
   const locate = h('button.btn-icon', { title: 'Show on board', onclick: () => state.active && hooks.locate(state.active) }, icon('locate', 15));
-  const reveal = h('button.btn-icon', { title: 'Show in Finder', onclick: () => { const it = getItem(state.active); if (it?.path) window.api.shell.reveal(it.path); } }, icon('reveal', 15));
-  const vscode = h('button.btn-icon', { title: 'Open in VS Code', onclick: () => { const it = getItem(state.active); if (it?.path) window.api.shell.openExternal(`vscode://file${encodeURI(it.path)}`); } }, icon('external', 15));
+  const reveal = h('button.btn-icon', { title: `Show in ${fileManager()}`, onclick: () => { const it = getItem(state.active); if (it?.path) window.api.shell.reveal(it.path); } }, icon('reveal', 15));
+  const vscode = h('button.btn-icon', { title: 'Open in VS Code', onclick: () => { const it = getItem(state.active); if (it?.path) window.api.shell.openExternal(vscodeUrl(it.path)); } }, icon('external', 15));
   const revert = h('button.btn', { title: 'Discard unsaved changes', onclick: () => revertActive() }, 'Revert');
   const save = h('button.btn.btn-primary', { title: 'Save (⌘S)', onclick: () => saveActive() }, icon('save', 13), 'Save');
   const banner = h('div.editor-banner', { hidden: true });
   const host = h('div.editor-host');
   const status = h('div.editor-status');
-  const empty = h('div.editor-empty', null, icon('code', 28), h('p', null, 'Double-click a file card to open it here.'), h('p.muted', null, '⌘S save · ⌘/ comment · Ctrl+Space natives · ⌘F find'));
+  const empty = h('div.editor-empty', null, icon('code', 28), h('p', null, 'Double-click a file card to open it here.'), h('p.muted', null, keys('⌘S save · ⌘/ comment · ⌃Space natives · ⌘F find')));
   const resize = h('div.editor-resize', { title: 'Drag to resize' });
   root.append(resize, h('div.editor-tabbar', null, tabs, closeDrawer), h('div.editor-toolbar', null, h('div.editor-file', null, lang, h('div.editor-titles', null, name, path), role), h('div.editor-actions', null, locate, reveal, vscode, revert, save)), banner, host, status, empty);
   els = { root, tabs, lang, name, path, role, save, revert, banner, host, status, empty, reveal, vscode };
@@ -369,7 +369,7 @@ function renderToolbar() {
   els.lang.dataset.lang = item.lang;
   els.name.textContent = item.name;
   // Wrapped in LRM marks so the right-to-left truncation (keeps the file end visible) doesn't move slashes.
-  els.path.textContent = item.path ? `\u200E${item.path}\u200E` : 'Not saved yet — ⌘S to choose a location';
+  els.path.textContent = item.path ? `\u200E${item.path}\u200E` : keys('Not saved yet — ⌘S to choose a location');
   els.path.title = item.path || '';
   els.role.textContent = ROLE_LABEL[info?.role] || '';
   els.role.hidden = !ROLE_LABEL[info?.role];

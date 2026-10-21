@@ -1,6 +1,6 @@
 # FiveBoard
 
-A planning board and code space for FiveM scripting, built as a desktop app for macOS.
+A planning board and code space for FiveM scripting, built as a desktop app for macOS and Windows.
 
 Drop sticky notes, text, checklists, images, links and files anywhere on an infinite grey board, move them around freely, and tie them together with yarn, like a detective's corkboard. Import a resource folder, or your whole server `resources/` folder, and FiveBoard lays every folder out as a frame and every file as a card with its full contents, syntax highlighted. It then draws the connections in your code: what the manifest loads, which events go client → server and back, callbacks, NUI messages and exports.
 
@@ -20,7 +20,7 @@ Drop sticky notes, text, checklists, images, links and files anywhere on an infi
 - **Import a folder:** every folder becomes a frame and every file a card showing its contents. Binary assets (`stream/*.ydr`, `.ytd`, audio, fonts…) are grouped into compact file lists, and small images show as pictures.
 - **Built-in editor** (⌘E) with tabs, line numbers, bracket matching, find, comment toggling and **FiveM native autocomplete** (Ctrl+Space) that shows the parameters and whether each native is client- or server-side.
 - Edits flow straight back to the card. Press ⌘S to save to disk. FiveBoard watches imported folders, so changes from VS Code or git show up on the board right away.
-- Open any file in VS Code or Finder, or with its default app, from the card's menu.
+- Open any file in VS Code, Finder/Explorer, or its default app from the card's menu.
 
 **Made for FiveM**
 - Parses `fxmanifest.lua` / `__resource.lua` (globs, `@resource/` includes, `ui_page`, `files`, `dependencies`, `data_file`…) and labels every script **CLIENT / SERVER / SHARED / CONFIG / NUI**.
@@ -50,7 +50,30 @@ Drop sticky notes, text, checklists, images, links and files anywhere on an infi
 
 ![Editing a client script](docs/code-editor.png)
 
-## Install and run (macOS)
+## Download
+
+Ready-made builds come from GitHub Actions. Open the repository's **Actions** tab, pick the latest **Build FiveBoard (macOS)** or **Build FiveBoard (Windows)** run, and download the artifact at the bottom of the page. You need to be signed in to GitHub.
+
+### Windows
+
+The **FiveBoard-Windows** artifact contains two files:
+
+- **`FiveBoard-Setup-1.0.0.exe`** — the installer. It adds Start menu and desktop shortcuts, and `.fiveboard` files open in FiveBoard when double-clicked.
+- **`FiveBoard-1.0.0-portable.exe`** — runs without installing, for example from a USB stick.
+
+The app isn't signed with a paid certificate, so Windows SmartScreen may say "Windows protected your PC". Click **More info → Run anyway**.
+
+### macOS
+
+The **FiveBoard-macOS** artifact contains `FiveBoard-1.0.0-arm64.dmg` for Apple Silicon (M1–M4) and `FiveBoard-1.0.0-x64.dmg` for Intel Macs. Open the `.dmg` and drag **FiveBoard** into Applications.
+
+The app isn't notarized by Apple, so macOS may say it "can't be opened" or "is damaged". Right-click the app → **Open**, or run:
+
+```bash
+xattr -dr com.apple.quarantine /Applications/FiveBoard.app
+```
+
+## Run from source
 
 You need [Node.js](https://nodejs.org) 20 or newer.
 
@@ -58,25 +81,14 @@ You need [Node.js](https://nodejs.org) 20 or newer.
 cd fiveboard
 npm install
 npm start          # run FiveBoard
+npm run dist       # build for the computer you're on: .dmg on a Mac, installer + portable .exe on Windows
 ```
 
-### Build a real Mac app
-
-```bash
-npm run dist       # creates dist/FiveBoard-1.0.0-arm64.dmg (Apple Silicon) and -x64.dmg (Intel)
-```
-
-Open the `.dmg` and drag **FiveBoard** into Applications.
-
-The app isn't notarized by Apple. A copy you built yourself opens normally. If you download a build made elsewhere (for example from the GitHub Actions artifacts), macOS may say it "can't be opened" or "is damaged". In that case, right-click the app → **Open**, or run:
-
-```bash
-xattr -dr com.apple.quarantine /Applications/FiveBoard.app
-```
-
-Every push that changes `fiveboard/` runs the **Build FiveBoard (macOS)** workflow. You can also run it manually from the repository's **Actions** tab. The `.dmg` files are attached to each run as an artifact.
+Every push that changes `fiveboard/` runs both build workflows; you can also start them by hand from the **Actions** tab. The Windows workflow also launches the packaged app and runs a smoke test before uploading it.
 
 ## Keyboard shortcuts
+
+On Windows, use Ctrl instead of ⌘, Alt instead of ⌥, and Shift for ⇧ (the app shows the right keys for your system). Press Alt or click the ☰ button to open the menu.
 
 | Action | Shortcut |
 | --- | --- |
@@ -94,12 +106,13 @@ Every push that changes `fiveboard/` runs the **Build FiveBoard (macOS)** workfl
 
 ## Where things are stored
 
-Boards are saved in `~/Library/Application Support/FiveBoard/boards/`. Imported files stay where they are: cards keep a copy of their contents so a board still opens when a folder has moved, and they reload from disk whenever the folder is available.
+Boards are saved in `~/Library/Application Support/FiveBoard/boards/` on macOS and `%APPDATA%\FiveBoard\boards\` on Windows. Imported files stay where they are: cards keep a copy of their contents so a board still opens when a folder has moved, and they reload from disk whenever the folder is available.
 
 ## Development
 
 ```bash
 npm test           # FiveM analyzer unit tests (node:test)
+npm install --no-save playwright-core && node test/smoke-electron.mjs   # launches the app end to end
 ```
 
 - `src/main/` — Electron main process: window, secure `app://` protocol, folder scanning, file watching, board storage, menus

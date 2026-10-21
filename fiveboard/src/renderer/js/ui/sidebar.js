@@ -1,6 +1,6 @@
 // Left sidebar: boards library, workspace file trees and yarn filters.
 import { store, subscribe, setUi, getItem } from '../store.js';
-import { h, icon, timeAgo } from '../util.js';
+import { h, icon, timeAgo, fileManager } from '../util.js';
 import { LINK_KINDS, YARN_COLORS, kindGroup } from '../yarn.js';
 
 let els = {};
@@ -108,7 +108,7 @@ function renderTree() {
     ));
   }
   if (!blocks.length) {
-    blocks.push(h('div.sb-empty', null, h('p', null, 'No folders yet.'), h('button.btn.btn-small', { onclick: () => hooks.command('workspace:import') }, 'Import a resource folder…'), h('p.muted', null, 'or drag one from Finder onto the board')));
+    blocks.push(h('div.sb-empty', null, h('p', null, 'No folders yet.'), h('button.btn.btn-small', { onclick: () => hooks.command('workspace:import') }, 'Import a resource folder…'), h('p.muted', null, `or drag one from ${fileManager()} onto the board`)));
   }
   els.wsHost.replaceChildren(...blocks);
   highlightSelection();

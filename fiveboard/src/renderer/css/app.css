@@ -41,7 +41,7 @@ body[data-theme='dark'] {
   --role-sql: #e86fa8;
   --role-other: #767a83;
   --font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', 'Segoe UI', system-ui, sans-serif;
-  --mono: 'SF Mono', ui-monospace, 'JetBrains Mono', Menlo, Consolas, monospace;
+  --mono: 'SF Mono', ui-monospace, 'JetBrains Mono', 'Cascadia Mono', Menlo, Consolas, monospace;
 }
 
 body[data-theme='light'] {
@@ -200,6 +200,11 @@ kbd {
 .platform-darwin .traffic-space {
   width: 72px;
   flex: none;
+}
+
+/* Windows draws its minimize / maximize / close buttons over the right end of our title bar. */
+.platform-win32 #titlebar {
+  padding-right: 146px;
 }
 
 .tb-center {

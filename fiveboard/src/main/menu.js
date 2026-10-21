@@ -1,4 +1,4 @@
-import { app, Menu, shell } from 'electron';
+import { app, BrowserWindow, Menu, dialog, shell } from 'electron';
 
 // Single-letter board shortcuts are handled by the renderer; the menu only displays them.
 const hint = (accelerator) => ({ accelerator, registerAccelerator: false });
@@ -111,10 +111,23 @@ export function buildMenu(send) {
     {
       role: 'help',
       submenu: [
-        ...(isMac ? [] : [{ label: 'Keyboard Shortcuts', accelerator: 'CmdOrCtrl+/', click: cmd('help:shortcuts') }]),
+        ...(isMac ? [] : [{ label: 'Keyboard Shortcuts', accelerator: 'CmdOrCtrl+/', click: cmd('help:shortcuts') }, { type: 'separator' }]),
         { label: 'FiveM Documentation', click: () => shell.openExternal('https://docs.fivem.net/docs/') },
         { label: 'FiveM Natives Reference', click: () => shell.openExternal('https://docs.fivem.net/natives/') },
         { label: 'Cfx.re Forum', click: () => shell.openExternal('https://forum.cfx.re/') },
+        ...(isMac
+          ? []
+          : [
+              { type: 'separator' },
+              {
+                label: 'About FiveBoard',
+                click: () => dialog.showMessageBox(BrowserWindow.getFocusedWindow(), {
+                  title: 'About FiveBoard',
+                  message: 'FiveBoard',
+                  detail: `Version ${app.getVersion()}\nA planning board and code space for FiveM scripting.`,
+                }),
+              },
+            ]),
       ],
     },
   ];

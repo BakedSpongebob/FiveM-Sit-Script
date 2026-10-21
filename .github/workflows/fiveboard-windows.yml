@@ -1,0 +1,55 @@
+name: Build FiveBoard (Windows)
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'fiveboard/**'
+      - '.github/workflows/fiveboard-windows.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: fiveboard
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: fiveboard/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test
+        run: npm test
+
+      - name: Build installer + portable .exe
+        run: npm run dist:win
+
+      - name: Smoke test the packaged app
+        run: |
+          npm install --no-save --no-audit --no-fund playwright-core@1.56.1
+          node test/smoke-electron.mjs --exe dist/win-unpacked/FiveBoard.exe --shot dist/smoke-windows.png
+
+      - name: Upload app
+        uses: actions/upload-artifact@v4
+        with:
+          name: FiveBoard-Windows
+          path: fiveboard/dist/*.exe
+          if-no-files-found: error
+
+      - name: Upload smoke test screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-test-screenshot-windows
+          path: fiveboard/dist/smoke-windows.png
+          if-no-files-found: ignore

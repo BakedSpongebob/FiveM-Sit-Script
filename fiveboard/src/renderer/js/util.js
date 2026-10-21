@@ -35,6 +35,7 @@ export function h(tag, props, ...children) {
       else if (k === 'dataset') Object.assign(el.dataset, v);
       else if (k.startsWith('on') && typeof v === 'function') el.addEventListener(k.slice(2), v);
       else if (k === 'text') el.textContent = v;
+      else if (k === 'title') el.setAttribute('title', keys(v));
       else if (v === true) el.setAttribute(k, '');
       else el.setAttribute(k, v);
     }
@@ -88,6 +89,7 @@ const ICONS = {
   copy: 'M8 8h12v12H8zM4 16V4h12',
   dots: 'M5 12h.01M12 12h.01M19 12h.01',
   filelist: 'M4 6h.01M8 6h12M4 12h.01M8 12h12M4 18h.01M8 18h12',
+  menu: 'M4 7h16M4 12h16M4 17h16',
 };
 
 export function icon(name, size = 16) {
@@ -120,14 +122,47 @@ export function dirname(p) {
   return parts.join('/');
 }
 
+/** Join path parts using the separator style of the first part (so Windows paths stay backslashed). */
 export function joinPath(...parts) {
-  return parts
-    .filter(Boolean)
-    .join('/')
-    .replace(/\/{2,}/g, '/');
+  const list = parts.filter(Boolean).map(String);
+  const sep = list[0]?.includes('\\') && !list[0].includes('/') ? '\\' : '/';
+  const joined = list.map((p, i) => (i === 0 ? p : p.replace(/[\\/]/g, sep))).join(sep);
+  return sep === '/' ? joined.replace(/\/{2,}/g, '/') : joined.replace(/\\{2,}/g, '\\');
 }
 
 export const isMac = () => document.body.classList.contains('platform-darwin');
+
+export const isWindows = () => document.body.classList.contains('platform-win32');
+
+/** Name of the OS file browser, for "Show in …" labels. */
+export const fileManager = () => (isMac() ? 'Finder' : isWindows() ? 'Explorer' : 'file manager');
+
+/**
+ * Shortcut labels are written Mac-style (⇧⌘O). On Windows and Linux they become Ctrl+Shift+O.
+ * Works on whole sentences, so it can be applied to tooltips and help text.
+ */
+export function keys(text) {
+  if (typeof text !== 'string' || isMac() || !/[⌃⌥⇧⌘⌫↩]/.test(text)) return text;
+  return text
+    .replace(/⌘-scroll/g, 'Ctrl+scroll')
+    .replace(/([⌃⌥⇧⌘]+)(Space|[A-Za-z0-9]|[=\-\\/.,[\]`])?/g, (_, mods, key = '') => {
+      const parts = [];
+      if (mods.includes('⌘') || mods.includes('⌃')) parts.push('Ctrl');
+      if (mods.includes('⇧')) parts.push('Shift');
+      if (mods.includes('⌥')) parts.push('Alt');
+      if (key) parts.push(key);
+      return parts.join('+') + (key ? '' : '+');
+    })
+    .replace(/⌫/g, 'Backspace')
+    .replace(/↩/g, 'Enter');
+}
+
+/** vscode:// link that opens a file, for both POSIX and Windows paths. */
+export function vscodeUrl(p) {
+  let norm = String(p).replace(/\\/g, '/');
+  if (!norm.startsWith('/')) norm = `/${norm}`;
+  return `vscode://file${encodeURI(norm)}`;
+}
 
 export const modKey = (e) => (isMac() ? e.metaKey : e.ctrlKey);
 

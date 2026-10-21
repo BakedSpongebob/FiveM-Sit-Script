@@ -27,7 +27,7 @@ import { SCAFFOLDS, SNIPPETS, fillTemplate } from './fivem/snippets.js';
 import { detectLanguage } from './fivem/analyzer.js';
 import { YARN_COLORS, kindGroup, LINK_KINDS } from './yarn.js';
 import { NOTE_COLORS } from './items.js';
-import { h, icon, uid, boundsOf, rectContains, isEditableTarget, modKey, basename } from './util.js';
+import { h, icon, uid, boundsOf, rectContains, isEditableTarget, modKey, basename, keys, fileManager, vscodeUrl, isMac, isWindows } from './util.js';
 
 const $ = (sel) => document.querySelector(sel);
 let lastPointer = null;
@@ -41,6 +41,7 @@ async function boot() {
   document.body.classList.add(`platform-${info.platform}`);
   const theme = (await window.api.settings.get('theme')) || 'dark';
   document.body.dataset.theme = theme;
+  window.api.setTheme(theme);
   for (const [key, cls] of [['sidebarHidden', 'sidebar-hidden'], ['inspectorHidden', 'inspector-hidden'], ['minimapHidden', 'minimap-hidden']]) {
     if (await window.api.settings.get(key)) document.body.classList.add(cls);
   }
@@ -135,6 +136,27 @@ function toolButton(name, title, onClick, extra = {}) {
 }
 
 function buildChrome() {
+  // Static tooltips in index.html are written Mac-style; show Ctrl combos elsewhere.
+  for (const el of document.querySelectorAll('[title]')) el.title = keys(el.title);
+  if (isWindows()) {
+    // The Windows title bar is drawn by the app, so the menu bar lives behind this button (or Alt).
+    const openMenu = () => {
+      const r = $('#btn-menu').getBoundingClientRect();
+      window.api.showAppMenu(r.left, r.bottom + 4);
+    };
+    $('.tb-left').prepend(h('button.btn-icon', { id: 'btn-menu', title: 'Menu (Alt)', onclick: openMenu }, icon('menu', 17)));
+    let altAlone = false;
+    window.addEventListener('keydown', (e) => {
+      altAlone = e.key === 'Alt' && !e.repeat;
+    }, true);
+    window.addEventListener('keyup', (e) => {
+      if (e.key === 'Alt' && altAlone && !isEditableTarget(e.target)) {
+        e.preventDefault();
+        openMenu();
+      }
+      altAlone = false;
+    }, true);
+  }
   $('#btn-sidebar').append(icon('sidebar', 17));
   $('#btn-sidebar').addEventListener('click', () => togglePanel('sidebar'));
   $('#btn-search').append(icon('search', 17));
@@ -383,6 +405,7 @@ async function run(command, payload) {
     case 'view:theme':
       document.body.dataset.theme = payload === 'light' ? 'light' : 'dark';
       window.api.settings.set('theme', document.body.dataset.theme);
+      window.api.setTheme(document.body.dataset.theme);
       notify('viewport');
       break;
 
@@ -460,7 +483,7 @@ function deleteSelection() {
   const items = selectedItems();
   if (!items.length) return;
   const dirty = items.filter((i) => i.type === 'file' && i.dirty);
-  if (dirty.length) toast(`Removed ${dirty.length} card${dirty.length === 1 ? '' : 's'} with unsaved changes — ⌘Z to undo`, { type: 'warn' });
+  if (dirty.length) toast(`Removed ${dirty.length} card${dirty.length === 1 ? '' : 's'} with unsaved changes — ${keys('⌘Z')} to undo`, { type: 'warn' });
   checkpoint();
   removeItems(items.map((i) => i.id));
 }
@@ -592,7 +615,7 @@ function removeWorkspace(wsId) {
   removeItems(store.board.items.filter((i) => i.workspaceId === wsId).map((i) => i.id));
   setWorkspaces(store.board.workspaces.filter((w) => w.id !== wsId));
   window.api.fs.unwatch(ws.root);
-  toast(`Removed ${ws.name} from the board (files on disk are untouched) — ⌘Z to undo`);
+  toast(`Removed ${ws.name} from the board (files on disk are untouched) — ${keys('⌘Z')} to undo`);
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -708,31 +731,31 @@ function workspaceMenu(ws, x, y) {
   showMenu(x, y, [
     { label: 'Show on board', icon: 'locate', action: () => { const f = store.board.items.find((i) => i.type === 'frame' && i.workspaceId === ws.id && !i.relPath); if (f) selectAndFit([f.id]); } },
     { label: 'Rescan from disk', icon: 'refresh', action: () => rescanWorkspace(ws.id) },
-    { label: 'Show in Finder', icon: 'reveal', action: () => window.api.shell.openPath(ws.root) },
+    { label: `Show in ${fileManager()}`, icon: 'reveal', action: () => window.api.shell.openPath(ws.root) },
     { separator: true },
     { label: 'Remove from board', icon: 'trash', danger: true, action: () => removeWorkspace(ws.id) },
   ]);
 }
 
 function showShortcuts() {
-  const k = document.body.classList.contains('platform-darwin') ? '⌘' : 'Ctrl+';
+  // Written Mac-style; keys() turns them into Ctrl/Shift/Alt combos on Windows.
   const rows = [
     ['Board', [
-      ['Pan', 'Scroll · Space-drag · middle mouse'], ['Zoom', `Pinch · ${k}scroll · ${k}= / ${k}-`], ['Zoom to fit / selection', `${k}1 / ${k}2`],
+      ['Pan', 'Scroll · Space-drag · middle mouse'], ['Zoom', isMac() ? 'Pinch · ⌘-scroll · ⌘= / ⌘-' : 'Ctrl+scroll · Ctrl+= / Ctrl+-'], ['Zoom to fit / selection', '⌘1 / ⌘2'],
       ['Select / hand tool', 'V / H'], ['Multi-select', 'Shift-click or drag a box'], ['Nudge', 'Arrow keys (Shift = 10px)'],
-      ['Undo / redo', `${k}Z / ⇧${k}Z`], ['Duplicate / delete', `${k}D / ⌫`], ['Search', `${k}K · in files ⇧${k}F`],
+      ['Undo / redo', '⌘Z / ⇧⌘Z'], ['Duplicate / delete', '⌘D / ⌫'], ['Search', '⌘K · in files ⇧⌘F'],
     ]],
     ['Cards', [
-      ['Sticky note / text / checklist', 'N / T / L (or double-click the board)'], ['Frame / group selection', `G / ${k}G`], ['Link / image', 'U / I'],
-      ['Edit or open card', 'Enter or double-click'], ['Connect with yarn', `Drag a card’s pin · ${k}L for the selection`],
+      ['Sticky note / text / checklist', 'N / T / L (or double-click the board)'], ['Frame / group selection', 'G / ⌘G'], ['Link / image', 'U / I'],
+      ['Edit or open card', '↩ or double-click'], ['Connect with yarn', 'Drag a card’s pin · ⌘L for the selection'],
     ]],
     ['Code', [
-      ['Save / save all', `${k}S / ⌥${k}S`], ['Toggle editor', `${k}E`], ['Close tab', `${k}W`], ['Comment line', `${k}/`],
-      ['Autocomplete natives', 'Ctrl+Space'], ['Find in file', `${k}F`], ['New resource / snippet', `⇧${k}N / ⇧${k}I`],
+      ['Save / save all', '⌘S / ⌥⌘S'], ['Toggle editor', '⌘E'], ['Close tab', '⌘W'], ['Comment line', '⌘/'],
+      ['Autocomplete natives', '⌃Space'], ['Find in file', '⌘F'], ['New resource / snippet', '⇧⌘N / ⇧⌘I'],
     ]],
   ];
   sheet('Keyboard shortcuts', h('div.shortcuts', null, ...rows.map(([title, list]) =>
-    h('div.shortcut-group', null, h('h3', null, title), ...list.map(([a, b]) => h('div.shortcut-row', null, h('span', null, a), h('kbd', null, b)))),
+    h('div.shortcut-group', null, h('h3', null, title), ...list.map(([a, b]) => h('div.shortcut-row', null, h('span', null, a), h('kbd', null, keys(b))))),
   )));
 }
 
@@ -806,9 +829,9 @@ function contextMenu({ kind, id, x, y, world }) {
     if (item.type === 'file') {
       menu.push(
         { label: 'Open in editor', icon: 'code', shortcut: '↩', action: () => openEditor(item.id) },
-        item.path ? { label: 'Show in Finder', icon: 'reveal', action: () => window.api.shell.reveal(item.path) } : null,
+        item.path ? { label: `Show in ${fileManager()}`, icon: 'reveal', action: () => window.api.shell.reveal(item.path) } : null,
         item.path ? { label: 'Open with default app', icon: 'external', action: () => window.api.shell.openPath(item.path) } : null,
-        item.path ? { label: 'Open in VS Code', action: () => window.api.shell.openExternal(`vscode://file${encodeURI(item.path)}`) } : null,
+        item.path ? { label: 'Open in VS Code', action: () => window.api.shell.openExternal(vscodeUrl(item.path)) } : null,
         item.path ? { label: 'Reload from disk', icon: 'refresh', action: () => reloadFile(item.id) } : null,
         item.path ? { label: 'Copy path', icon: 'copy', action: () => navigator.clipboard.writeText(item.path) } : null,
         { separator: true },
@@ -828,7 +851,7 @@ function contextMenu({ kind, id, x, y, world }) {
     } else if (item.type === 'link') {
       menu.push({ label: 'Open link', icon: 'external', action: () => openUrl(item.url) }, { label: 'Edit link…', action: () => editLink(item.id) }, { separator: true });
     } else if (item.type === 'image') {
-      menu.push({ label: 'Original ratio', action: () => resetImage(item.id) }, item.path ? { label: 'Show in Finder', icon: 'reveal', action: () => window.api.shell.reveal(item.path) } : null, { separator: true });
+      menu.push({ label: 'Original ratio', action: () => resetImage(item.id) }, item.path ? { label: `Show in ${fileManager()}`, icon: 'reveal', action: () => window.api.shell.reveal(item.path) } : null, { separator: true });
     } else if (item.type === 'resource') {
       const res = store.graph?.resources.get(item.resourceId);
       if (res?.manifestFileId) menu.push({ label: 'Open fxmanifest.lua', icon: 'code', action: () => openEditor(res.manifestFileId) }, { separator: true });

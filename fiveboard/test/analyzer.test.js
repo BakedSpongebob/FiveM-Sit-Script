@@ -262,3 +262,22 @@ test('resource templates analyze cleanly (no warnings, full round trip)', async 
     }
   }
 });
+
+test('shortcut labels become Ctrl combos outside macOS', async () => {
+  globalThis.document = { body: { classList: { contains: (c) => c === 'platform-win32' } } };
+  try {
+    const { keys, joinPath, vscodeUrl } = await import('../src/renderer/js/util.js');
+    assert.equal(keys('Import folder (⇧⌘O)'), 'Import folder (Ctrl+Shift+O)');
+    assert.equal(keys('⌘S save · ⌥⌘S all · ⌃Space'), 'Ctrl+S save · Ctrl+Alt+S all · Ctrl+Space');
+    assert.equal(keys('Zoom out (⌘-) · pinch or ⌘-scroll'), 'Zoom out (Ctrl+-) · pinch or Ctrl+scroll');
+    assert.equal(keys('Delete ⌫ · open ↩'), 'Delete Backspace · open Enter');
+    assert.equal(keys('Toggle sidebar (⌘\\)'), 'Toggle sidebar (Ctrl+\\)');
+    assert.equal(joinPath('C:\\Users\\me\\resources', 'shop/client/main.lua'), 'C:\\Users\\me\\resources\\shop\\client\\main.lua');
+    assert.equal(joinPath('/Users/me/resources', 'shop/client/main.lua'), '/Users/me/resources/shop/client/main.lua');
+    assert.equal(vscodeUrl('C:\\Users\\me\\My Server\\x.lua'), 'vscode://file/C:/Users/me/My%20Server/x.lua');
+    globalThis.document = { body: { classList: { contains: (c) => c === 'platform-darwin' } } };
+    assert.equal(keys('Import folder (⇧⌘O)'), 'Import folder (⇧⌘O)');
+  } finally {
+    delete globalThis.document;
+  }
+});
